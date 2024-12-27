@@ -1,17 +1,29 @@
-from django.views import View # new
-class CommentGet(DetailView): # new
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, DetailView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import Article
+class ArticleListView(LoginRequiredMixin, ListView): # new
+ model = Article
+template_name = "article_list.html"
+class ArticleDetailView(LoginRequiredMixin, DetailView): # new
  model = Article
 template_name = "article_detail.html"
-def get_context_data(self, **kwargs):
- context = super().get_context_data(**kwargs)
- context["form"] = CommentForm()
- return context
-class CommentPost(): # new
- pass
-class ArticleDetailView(LoginRequiredMixin, View): # new
- def get(self, request, *args, **kwargs):
-  view = CommentGet.as_view()
-  return view(request, *args, **kwargs)
-def post(self, request, *args, **kwargs):
- view = CommentPost.as_view()
- return view(request, *args, **kwargs)
+class ArticleUpdateView(LoginRequiredMixin, UpdateView): # new
+ model = Article
+fields = (
+"title",
+"body",
+)
+template_name = "article_edit.html"
+class ArticleDeleteView(LoginRequiredMixin, DeleteView): # new
+ model = Article
+template_name = "article_delete.html"
+success_url = reverse_lazy("article_list")
+class ArticleCreateView(LoginRequiredMixin, CreateView):
+ model = Article
+template_name = "article_new.html"
+fields = ("title", "body",)
+def form_valid(self, form):
+ form.instance.author = self.request.user
+ return super().form_valid(form)
